@@ -1,0 +1,29 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "script"
+
+# Pinned: the protected floor suite is written for 0.8.26 exactly, and so is v4-core's PoolManager.
+solc_version = "0.8.26"
+# Uniswap v4 needs transient storage (tload/tstore), which needs cancun. Sepolia supports it.
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+via_ir = false
+bytecode_hash = "none"
+
+# The verifier runs with no network and no filesystem access; keep the build fully hermetic.
+offline = true
+ffi = false
+fs_permissions = []
+
+[profile.default.fuzz]
+runs = 256
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"

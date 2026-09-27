@@ -1,0 +1,18 @@
+out/
+cache/
+broadcast/
+test/scratch/
+# sandbox-provided dotfiles, not part of the project
+.bash_profile
+.bashrc
+.gitconfig
+.gitmodules
+.idea
+.mcp.json
+.profile
+.ripgreprc
+.vscode
+.zprofile
+.zshrc
+.claude/
+.imd/
