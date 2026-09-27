@@ -1,0 +1,21 @@
+{
+  "kind": "univ4_hook",
+  "hook": {
+    "contract": "HappyHourHook",
+    "constructorArgs": ["0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"],
+    "permissions": ["beforeSwap", "afterSwap", "beforeSwapReturnDelta", "afterSwapReturnDelta"]
+  },
+  "token": {
+    "contract": "HappyHourToken",
+    "name": "Happy Hour",
+    "symbol": "HAPPY",
+    "decimals": 18
+  },
+  "pool": {
+    "pairedCurrency": "0x0000000000000000000000000000000000000000",
+    "fee": 3000,
+    "tickSpacing": 60,
+    "initialPrice": "79228162514264337593543950336"
+  },
+  "notes": "Happy Hour launch on Sepolia (11155111): the HAPPY token and the HappyHourHook on a native-ETH/HAPPY Uniswap v4 pool.\n\nToken: HappyHourToken (src/HappyHourToken.sol), OpenZeppelin ERC20 v5.7.0, name 'Happy Hour', symbol HAPPY, 18 decimals. Zero-argument constructor mints exactly 10^27 minor units to msg.sender (the launch factory) once; no owner, mint, burn, pause, proxy, transfer fee or transfer hook. Runtime contains no DELEGATECALL, CALLCODE or SELFDESTRUCT.\n\nHook: HappyHourHook (src/HappyHourHook.sol), implements IHooks directly, solc 0.8.26, evm cancun. The constructor takes exactly one argument, the IPoolManager address, given here as the canonical Uniswap v4 PoolManager on Sepolia 0xE03A1074c86CFeDd5C142C4F04F1a1536e203543 (the same constant script/Deploy.s.sol uses for chain 11155111). It reverts with ZeroPoolManager on address zero and with Hooks.HookAddressNotValid unless the deploy address carries exactly the declared bits. No owner, admin, setter, pause, sweep or upgrade path, and no mutable state. getHookPermissions returns beforeSwap, afterSwap, beforeSwapReturnDelta and afterSwapReturnDelta only: flag mask 0xCC (204). beforeInitialize is not used; the factory opens the pool. The hook must be created with CREATE2 at an address whose low 14 bits equal 0xCC; src/HookMiner.sol mines the salt, and the deploy script mines against the canonical CREATE2 proxy 0x4e59b44847b379578588920cA78FbF26c0B4956C and reverts with AddressMismatch otherwise.\n\nBehaviour: on any pool whose currency0 is not native ETH the hook does nothing. Schedule from block.timestamp only: day = timestamp / 86400; the free hour starts at UTC hour (day * 7) % 24 and lasts exactly 3600 seconds. Outside it every swap pays 1% (rounded down) of its ETH side, taken from the PoolManager to 0x000000000000000000000000000000000000dEaD inside the same swap, and emits FeeBurned(poolId, amount). When ETH is the specified currency (exact-input buy, exact-output sell) the fee is charged in beforeSwap as a +fee specified delta; when ETH is the unspecified currency (exact-output buy, exact-input sell) it is charged in afterSwap as a +fee unspecified delta on the pool's own ETH amount. Inside the free hour there is no fee and the swap matches a hookless pool exactly. The hook's ETH, token and ERC-6909 balances are zero after every swap. Views: isHappyHour, happyHourStart(day), nextHappyHour, currentFeeBps (100 or 0).\n\nPool: HAPPY paired against native ETH (currency0 = zero address, which is what the hook's native check requires), LP fee 3000 (0.3%), tickSpacing 60, initialPrice 79228162514264337593543950336 = sqrtPriceX96 for a 1:1 opening price. These are the parameters the accepted test fixture uses; the deployer derives the effective opening price from the pinned policy. The 1% burn is separate from and additional to the pool's LP fee. Caveats recorded in REVIEW.md: the fee take needs the PoolManager to hold at least the fee in ETH at callback time (always true on a live network; seeding the pool with ETH-side liquidity removes the case entirely); an exact-output sell that only partially fills still pays 1% of the requested ETH; ETH legs under 100 wei round to a zero fee and emit nothing.\n\nVerification (offline): forge build --offline, forge test --offline (56 passed), forge fmt --check, EXPECTED_CHAIN_ID=0 forge script script/Deploy.s.sol:Deploy --offline; the protected floor suite passes with flags 204 and decimals 18. ABIs at docs/abi/HappyHourHook.json and docs/abi/HappyHourToken.json. Supply, allocations, owner, chain id, policy version and artifact hashes are not manifest fields; they come from policy and the release attestation."
+}
